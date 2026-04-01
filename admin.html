@@ -1,0 +1,1911 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vivo VMS — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Nunito+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --green: #2e5a3a;
+        --accent: #c8593a;
+        --accent2: #a0401f;
+        --text: #1a1208;
+        --muted: #8a7e72;
+        --surface: #faf7f2;
+        --surface2: #f0ebe1;
+        --border: #e0d9cf;
+        --radius: 12px;
+        --sidebar: 230px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Nunito Sans", sans-serif;
+        background: var(--surface2);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      /* ── LOGIN ────────────────────────────────────── */
+      #loginScreen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--green) 0%, #1a3322 100%);
+        padding: 20px;
+      }
+      .login-card {
+        background: var(--surface);
+        border-radius: 20px;
+        padding: 40px 36px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+        animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes popIn {
+        from {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .login-logo {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+      .login-logo-icon {
+        font-size: 40px;
+      }
+      .login-logo-title {
+        font-family: "Playfair Display", serif;
+        font-size: 22px;
+        color: var(--green);
+        margin-top: 6px;
+      }
+      .login-logo-sub {
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      .login-field {
+        margin-bottom: 16px;
+      }
+      .login-field label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      .login-field input {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        font-family: "Nunito Sans", sans-serif;
+        font-size: 15px;
+        background: #fff;
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .login-field input:focus {
+        border-color: var(--green);
+      }
+      .login-btn {
+        width: 100%;
+        padding: 14px;
+        background: var(--green);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius);
+        font-family: "Nunito Sans", sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: background 0.2s;
+      }
+      .login-btn:hover {
+        background: #1a3322;
+      }
+      .login-error {
+        color: var(--accent);
+        font-size: 13px;
+        text-align: center;
+        margin-top: 10px;
+        min-height: 20px;
+      }
+
+      /* ── LAYOUT ───────────────────────────────────── */
+      #appScreen {
+        display: none;
+        min-height: 100vh;
+      }
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* ── SIDEBAR ──────────────────────────────────── */
+      .sidebar {
+        width: var(--sidebar);
+        background: var(--green);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 100;
+        transition: transform 0.3s;
+      }
+      .sidebar-logo {
+        padding: 24px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .sidebar-logo-title {
+        font-family: "Playfair Display", serif;
+        font-size: 16px;
+        color: #fff;
+      }
+      .sidebar-logo-sub {
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-top: 2px;
+      }
+      .sidebar-nav {
+        flex: 1;
+        padding: 16px 0;
+        overflow-y: auto;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+        text-decoration: none;
+      }
+      .nav-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+      .nav-item.active {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        border-left-color: #fff;
+      }
+      .nav-icon {
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+      }
+      .sidebar-footer {
+        padding: 16px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .sidebar-user {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 10px;
+      }
+      .sidebar-user strong {
+        color: #fff;
+        display: block;
+        font-size: 13px;
+      }
+      .logout-btn {
+        width: 100%;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        font-family: "Nunito Sans", sans-serif;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .logout-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* ── MAIN ─────────────────────────────────────── */
+      .main {
+        margin-left: var(--sidebar);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .topbar {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0 24px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .topbar-title {
+        font-family: "Playfair Display", serif;
+        font-size: 18px;
+        color: var(--text);
+      }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .range-tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--surface2);
+        padding: 4px;
+        border-radius: 8px;
+      }
+      .range-tab {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .range-tab.active {
+        background: #fff;
+        color: var(--text);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      }
+      .refresh-btn {
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: #fff;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--muted);
+        font-family: "Nunito Sans", sans-serif;
+      }
+
+      .content {
+        padding: 24px;
+        flex: 1;
+      }
+
+      /* ── SECTION VISIBILITY ───────────────────────── */
+      .section {
+        display: none;
+      }
+      .section.active {
+        display: block;
+      }
+
+      /* ── KPI CARDS ────────────────────────────────── */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 900px) {
+        .kpi-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .kpi-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .kpi-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--green);
+      }
+      .kpi-card.accent::before {
+        background: var(--accent);
+      }
+      .kpi-card.blue::before {
+        background: #3a7bc8;
+      }
+      .kpi-card.purple::before {
+        background: #7c3ac8;
+      }
+      .kpi-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .kpi-value {
+        font-family: "Playfair Display", serif;
+        font-size: 36px;
+        color: var(--text);
+        line-height: 1;
+        margin-bottom: 4px;
+      }
+      .kpi-sub {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .kpi-icon {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        font-size: 24px;
+        opacity: 0.15;
+      }
+
+      /* ── CHARTS GRID ──────────────────────────────── */
+      .charts-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 900px) {
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .chart-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+      }
+      .chart-title {
+        font-family: "Playfair Display", serif;
+        font-size: 15px;
+        color: var(--text);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .chart-wrap {
+        position: relative;
+        height: 220px;
+      }
+
+      /* ── BOTTOM GRID ──────────────────────────────── */
+      .bottom-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 900px) {
+        .bottom-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ── TABLE ────────────────────────────────────── */
+      .table-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .table-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .table-header-title {
+        font-family: "Playfair Display", serif;
+        font-size: 15px;
+        color: var(--text);
+      }
+      .table-scroll {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 700px;
+      }
+      th {
+        padding: 10px 14px;
+        text-align: left;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+        white-space: nowrap;
+      }
+      td {
+        padding: 11px 14px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(224, 217, 207, 0.5);
+        color: var(--text);
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:hover td {
+        background: var(--surface2);
+      }
+
+      /* ── STATUS BADGES ────────────────────────────── */
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+      .badge-active {
+        background: #d4edda;
+        color: #1a6632;
+      }
+      .badge-done {
+        background: var(--surface2);
+        color: var(--muted);
+      }
+      .badge-sa {
+        background: #ffe5db;
+        color: var(--accent);
+      }
+      .badge-manager {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+      .badge-security {
+        background: #fef9c3;
+        color: #854d0e;
+      }
+      .badge-readonly {
+        background: var(--surface2);
+        color: var(--muted);
+      }
+
+      /* ── EXPORT BAR ───────────────────────────────── */
+      .export-bar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .export-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border);
+        background: #fff;
+        font-family: "Nunito Sans", sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text);
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .export-btn:hover {
+        border-color: var(--green);
+        color: var(--green);
+      }
+
+      /* ── USER MANAGEMENT ──────────────────────────── */
+      .user-form {
+        background: var(--surface2);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .user-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr auto;
+        gap: 10px;
+        align-items: end;
+      }
+      @media (max-width: 900px) {
+        .user-form-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .form-field label {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+      }
+      .form-field input,
+      .form-field select {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-family: "Nunito Sans", sans-serif;
+        font-size: 13px;
+        background: #fff;
+        color: var(--text);
+        outline: none;
+      }
+      .form-field input:focus,
+      .form-field select:focus {
+        border-color: var(--green);
+      }
+      .add-btn {
+        padding: 10px 18px;
+        background: var(--green);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-family: "Nunito Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      /* ── HOSTS LIST ───────────────────────────────── */
+      .host-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .host-item:last-child {
+        border-bottom: none;
+      }
+      .host-rank {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--surface2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        flex-shrink: 0;
+      }
+      .host-rank.gold {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .host-rank.silver {
+        background: #f1f5f9;
+        color: #475569;
+      }
+      .host-rank.bronze {
+        background: #fde8d0;
+        color: #9a3412;
+      }
+      .host-bar {
+        flex: 1;
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        margin: 0 10px;
+      }
+      .host-bar-fill {
+        height: 100%;
+        background: var(--green);
+        border-radius: 2px;
+        transition: width 0.6s ease;
+      }
+
+      /* ── TOAST ────────────────────────────────────── */
+      .toast {
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--green);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 100px;
+        font-weight: 700;
+        font-size: 13px;
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+
+      /* ── MODAL ────────────────────────────────────── */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(26, 18, 8, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 400;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .modal-overlay.show {
+        display: flex;
+        animation: fadeIn 0.2s ease forwards;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .modal-box {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 28px;
+        width: 100%;
+        max-width: 420px;
+        animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .modal-title {
+        font-family: "Playfair Display", serif;
+        font-size: 18px;
+        margin-bottom: 16px;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+      }
+      .btn-cancel {
+        padding: 9px 18px;
+        border: 1.5px solid var(--border);
+        background: #fff;
+        border-radius: 8px;
+        font-family: "Nunito Sans", sans-serif;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .btn-confirm {
+        padding: 9px 18px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-family: "Nunito Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-green {
+        background: var(--green);
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+        .main {
+          margin-left: 0;
+        }
+        .kpi-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toast" id="toast"></div>
+
+    <!-- ══ LOGIN ════════════════════════════════════════ -->
+    <div id="loginScreen">
+      <div class="login-card">
+        <div class="login-logo">
+          <div class="login-logo-icon">👗</div>
+          <div class="login-logo-title">Vivo Fashion Group</div>
+          <div class="login-logo-sub">Admin Portal</div>
+        </div>
+        <div class="login-field">
+          <label>Email</label>
+          <input
+            type="email"
+            id="loginEmail"
+            placeholder="admin@vivofashiongroup.com"
+            autocomplete="username"
+          />
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            onkeydown="if (event.key === 'Enter') doLogin();"
+          />
+        </div>
+        <button class="login-btn" onclick="doLogin()">Sign In →</button>
+        <div class="login-error" id="loginError"></div>
+      </div>
+    </div>
+
+    <!-- ══ APP ══════════════════════════════════════════ -->
+    <div id="appScreen">
+      <div class="layout">
+        <!-- SIDEBAR -->
+        <nav class="sidebar" id="sidebar">
+          <div class="sidebar-logo">
+            <div class="sidebar-logo-title">Vivo VMS</div>
+            <div class="sidebar-logo-sub">Command Centre</div>
+          </div>
+          <div class="sidebar-nav">
+            <a class="nav-item active" onclick="showSection('dashboard')">
+              <span class="nav-icon">📊</span> Dashboard
+            </a>
+            <a class="nav-item" onclick="showSection('visitors')">
+              <span class="nav-icon">👥</span> Visitor Log
+            </a>
+            <a class="nav-item" onclick="showSection('reports')">
+              <span class="nav-icon">📈</span> Reports
+            </a>
+            <a
+              class="nav-item"
+              id="usersNavItem"
+              onclick="showSection('users')"
+              style="display: none"
+            >
+              <span class="nav-icon">🔐</span> User Management
+            </a>
+          </div>
+          <div class="sidebar-footer">
+            <div class="sidebar-user">
+              <strong id="sidebarUserName">—</strong>
+              <span id="sidebarUserRole">—</span>
+            </div>
+            <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+          </div>
+        </nav>
+
+        <!-- MAIN -->
+        <div class="main">
+          <div class="topbar">
+            <div class="topbar-title" id="topbarTitle">Dashboard</div>
+            <div class="topbar-right">
+              <div class="range-tabs">
+                <button
+                  class="range-tab active"
+                  onclick="setRange('today', this)"
+                >
+                  Today
+                </button>
+                <button class="range-tab" onclick="setRange('week', this)">
+                  Week
+                </button>
+                <button class="range-tab" onclick="setRange('month', this)">
+                  Month
+                </button>
+              </div>
+              <button class="refresh-btn" onclick="loadAll()">🔄</button>
+            </div>
+          </div>
+
+          <div class="content">
+            <!-- ── DASHBOARD ──────────────────────────── -->
+            <div class="section active" id="section-dashboard">
+              <!-- KPI Cards -->
+              <div class="kpi-grid">
+                <div class="kpi-card">
+                  <div class="kpi-icon">🟢</div>
+                  <div class="kpi-label">Currently Inside</div>
+                  <div class="kpi-value" id="kpi-active">—</div>
+                  <div class="kpi-sub">Checked in, not yet out</div>
+                </div>
+                <div class="kpi-card accent">
+                  <div class="kpi-icon">👥</div>
+                  <div class="kpi-label">Total Visitors</div>
+                  <div class="kpi-value" id="kpi-total">—</div>
+                  <div class="kpi-sub" id="kpi-range-label">Today</div>
+                </div>
+                <div class="kpi-card blue">
+                  <div class="kpi-icon">⏱</div>
+                  <div class="kpi-label">Avg Visit Duration</div>
+                  <div class="kpi-value" id="kpi-avg">—</div>
+                  <div class="kpi-sub">minutes per visit</div>
+                </div>
+                <div class="kpi-card purple">
+                  <div class="kpi-icon">🏆</div>
+                  <div class="kpi-label">Peak Hour</div>
+                  <div class="kpi-value" id="kpi-peak">—</div>
+                  <div class="kpi-sub" id="kpi-peak-count">
+                    visitors in that hour
+                  </div>
+                </div>
+              </div>
+
+              <!-- Charts Row -->
+              <div class="charts-grid">
+                <div class="chart-card">
+                  <div class="chart-title">
+                    Hourly Traffic
+                    <span
+                      style="
+                        font-size: 11px;
+                        color: var(--muted);
+                        font-family: &quot;Nunito Sans&quot;, sans-serif;
+                      "
+                      >Check-ins by hour</span
+                    >
+                  </div>
+                  <div class="chart-wrap">
+                    <canvas id="hourlyChart"></canvas>
+                  </div>
+                </div>
+                <div class="chart-card">
+                  <div class="chart-title">Visit Types</div>
+                  <div class="chart-wrap"><canvas id="typeChart"></canvas></div>
+                </div>
+              </div>
+
+              <!-- Bottom Row -->
+              <div class="bottom-grid">
+                <!-- Trend Chart -->
+                <div class="chart-card">
+                  <div class="chart-title">
+                    Visitor Trend
+                    <span
+                      style="
+                        font-size: 11px;
+                        color: var(--muted);
+                        font-family: &quot;Nunito Sans&quot;, sans-serif;
+                      "
+                      >Daily volume</span
+                    >
+                  </div>
+                  <div class="chart-wrap">
+                    <canvas id="trendChart"></canvas>
+                  </div>
+                </div>
+
+                <!-- Top Hosts -->
+                <div class="chart-card">
+                  <div class="chart-title">Top Hosts</div>
+                  <div
+                    id="topHostsList"
+                    style="overflow-y: auto; max-height: 220px"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Compliance Row -->
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 14px;
+                  margin-bottom: 20px;
+                "
+              >
+                <div class="kpi-card">
+                  <div class="kpi-label">⚠ Unsigned Visitors</div>
+                  <div
+                    class="kpi-value"
+                    id="kpi-unsigned"
+                    style="font-size: 28px"
+                  >
+                    —
+                  </div>
+                  <div class="kpi-sub">No signature captured</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">📷 No Photo Captured</div>
+                  <div
+                    class="kpi-value"
+                    id="kpi-nophoto"
+                    style="font-size: 28px"
+                  >
+                    —
+                  </div>
+                  <div class="kpi-sub">Photo not taken</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── VISITOR LOG ─────────────────────────── -->
+            <div class="section" id="section-visitors">
+              <div class="table-card">
+                <div class="table-header">
+                  <div class="table-header-title">Visitor Log</div>
+                  <div class="export-bar">
+                    <button class="export-btn" onclick="exportCSV()">
+                      ⬇ Export CSV
+                    </button>
+                  </div>
+                </div>
+                <div class="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Company</th>
+                        <th>Type</th>
+                        <th>Purpose</th>
+                        <th>Host</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="visitorLogBody">
+                      <tr>
+                        <td
+                          colspan="11"
+                          style="
+                            text-align: center;
+                            color: var(--muted);
+                            padding: 30px;
+                          "
+                        >
+                          Loading…
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div
+                  style="
+                    padding: 12px 20px;
+                    border-top: 1px solid var(--border);
+                    font-size: 12px;
+                    color: var(--muted);
+                  "
+                  id="logPagination"
+                ></div>
+              </div>
+            </div>
+
+            <!-- ── REPORTS ─────────────────────────────── -->
+            <div class="section" id="section-reports">
+              <div class="chart-card" style="margin-bottom: 16px">
+                <div class="chart-title">Visitor Trend — Extended View</div>
+                <div style="height: 300px; position: relative">
+                  <canvas id="trendChartFull"></canvas>
+                </div>
+              </div>
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 14px;
+                  margin-bottom: 16px;
+                "
+              >
+                <div class="chart-card">
+                  <div class="chart-title">Visit Type Breakdown</div>
+                  <div style="height: 260px; position: relative">
+                    <canvas id="typeChartFull"></canvas>
+                  </div>
+                </div>
+                <div class="chart-card">
+                  <div class="chart-title">Hourly Pattern</div>
+                  <div style="height: 260px; position: relative">
+                    <canvas id="hourlyChartFull"></canvas>
+                  </div>
+                </div>
+              </div>
+              <div class="table-card">
+                <div class="table-header">
+                  <div class="table-header-title">Export Reports</div>
+                  <div class="export-bar">
+                    <button class="export-btn" onclick="exportCSV()">
+                      ⬇ CSV — Visitor Log
+                    </button>
+                  </div>
+                </div>
+                <div
+                  style="
+                    padding: 20px;
+                    color: var(--muted);
+                    font-size: 13px;
+                    line-height: 1.8;
+                  "
+                >
+                  <p>
+                    Select a date range using the
+                    <strong>Today / Week / Month</strong> tabs above, then click
+                    Export to download the visitor log for that period.
+                  </p>
+                  <p style="margin-top: 8px">
+                    The export includes: Name, Phone, ID Number, Company, Visit
+                    Type, Purpose, Host, Check In, Check Out, Duration,
+                    Signature status, and Photo status.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── USER MANAGEMENT ────────────────────── -->
+            <div class="section" id="section-users">
+              <div class="table-card">
+                <div class="table-header">
+                  <div class="table-header-title">Admin Users</div>
+                  <button class="export-btn" onclick="showAddUser()">
+                    + Add User
+                  </button>
+                </div>
+
+                <!-- Add User Form -->
+                <div
+                  class="user-form"
+                  id="addUserForm"
+                  style="display: none; margin: 16px"
+                >
+                  <div
+                    style="
+                      font-weight: 700;
+                      font-size: 13px;
+                      margin-bottom: 12px;
+                    "
+                  >
+                    New Admin User
+                  </div>
+                  <div class="user-form-grid">
+                    <div class="form-field">
+                      <label>Full Name</label>
+                      <input
+                        type="text"
+                        id="newName"
+                        placeholder="Jane Kamau"
+                      />
+                    </div>
+                    <div class="form-field">
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        id="newEmail"
+                        placeholder="jane@vivo.com"
+                      />
+                    </div>
+                    <div class="form-field">
+                      <label>Password</label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        placeholder="Min 8 characters"
+                      />
+                    </div>
+                    <div class="form-field">
+                      <label>Role</label>
+                      <select id="newRole">
+                        <option value="manager">Manager</option>
+                        <option value="security">Security</option>
+                        <option value="readonly">Read Only</option>
+                        <option value="superadmin">Super Admin</option>
+                      </select>
+                    </div>
+                    <div>
+                      <button class="add-btn" onclick="createUser()">
+                        Add User
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                      <tr>
+                        <td
+                          colspan="6"
+                          style="
+                            text-align: center;
+                            color: var(--muted);
+                            padding: 30px;
+                          "
+                        >
+                          Loading…
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- /content -->
+        </div>
+        <!-- /main -->
+      </div>
+      <!-- /layout -->
+    </div>
+    <!-- /appScreen -->
+
+    <!-- Password Reset Modal -->
+    <div class="modal-overlay" id="resetModal">
+      <div class="modal-box">
+        <div class="modal-title">Reset Password</div>
+        <div class="form-field" style="margin-bottom: 0">
+          <label>New Password</label>
+          <input
+            type="password"
+            id="resetPasswordInput"
+            placeholder="Min 8 characters"
+          />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeResetModal()">Cancel</button>
+          <button class="btn-confirm btn-green" onclick="submitReset()">
+            Reset Password
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ════════════════════════════════════════════════════
+      //  CONFIG
+      // ════════════════════════════════════════════════════
+      const API_BASE = "https://vms-backend-production-0708.up.railway.app"; // Change to Railway URL before deploying
+
+      // ════════════════════════════════════════════════════
+      //  STATE
+      // ════════════════════════════════════════════════════
+      let token = localStorage.getItem("vms_admin_token") || null;
+      let adminUser = JSON.parse(
+        localStorage.getItem("vms_admin_user") || "null",
+      );
+      let currentRange = "today";
+      let currentSection = "dashboard";
+      let resetTargetId = null;
+      let charts = {};
+
+      // ════════════════════════════════════════════════════
+      //  INIT
+      // ════════════════════════════════════════════════════
+      window.addEventListener("DOMContentLoaded", () => {
+        if (token && adminUser) {
+          showApp();
+        }
+      });
+
+      // ════════════════════════════════════════════════════
+      //  AUTH
+      // ════════════════════════════════════════════════════
+      async function doLogin() {
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        const errorEl = document.getElementById("loginError");
+        errorEl.textContent = "";
+
+        if (!email || !password) {
+          errorEl.textContent = "Please enter your email and password.";
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/api/admin/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            errorEl.textContent = data.error || "Login failed.";
+            return;
+          }
+
+          token = data.token;
+          adminUser = data.user;
+          localStorage.setItem("vms_admin_token", token);
+          localStorage.setItem("vms_admin_user", JSON.stringify(adminUser));
+          showApp();
+        } catch {
+          errorEl.textContent =
+            "Could not reach server. Check your connection.";
+        }
+      }
+
+      function showApp() {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("appScreen").style.display = "block";
+        document.getElementById("sidebarUserName").textContent = adminUser.name;
+        document.getElementById("sidebarUserRole").textContent = adminUser.role;
+
+        // Show user management only for superadmin
+        if (adminUser.role === "superadmin") {
+          document.getElementById("usersNavItem").style.display = "flex";
+        }
+
+        loadAll();
+
+        // Auto-refresh every 60 seconds
+        setInterval(loadAll, 60000);
+      }
+
+      function doLogout() {
+        token = null;
+        adminUser = null;
+        localStorage.removeItem("vms_admin_token");
+        localStorage.removeItem("vms_admin_user");
+        document.getElementById("appScreen").style.display = "none";
+        document.getElementById("loginScreen").style.display = "flex";
+        document.getElementById("loginPassword").value = "";
+        document.getElementById("loginError").textContent = "";
+      }
+
+      // ════════════════════════════════════════════════════
+      //  NAVIGATION
+      // ════════════════════════════════════════════════════
+      function showSection(name) {
+        currentSection = name;
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((n) => n.classList.remove("active"));
+        document.getElementById(`section-${name}`).classList.add("active");
+        event.currentTarget.classList.add("active");
+
+        const titles = {
+          dashboard: "Dashboard",
+          visitors: "Visitor Log",
+          reports: "Reports",
+          users: "User Management",
+        };
+        document.getElementById("topbarTitle").textContent =
+          titles[name] || name;
+
+        if (name === "visitors") loadVisitorLog();
+        if (name === "users") loadUsers();
+        if (name === "reports") loadReportCharts();
+      }
+
+      function setRange(range, btn) {
+        currentRange = range;
+        document
+          .querySelectorAll(".range-tab")
+          .forEach((t) => t.classList.remove("active"));
+        btn.classList.add("active");
+        const labels = {
+          today: "Today",
+          week: "This Week",
+          month: "This Month",
+        };
+        document.getElementById("kpi-range-label").textContent = labels[range];
+        loadAll();
+      }
+
+      // ════════════════════════════════════════════════════
+      //  API HELPER
+      // ════════════════════════════════════════════════════
+      async function api(path) {
+        const res = await fetch(`${API_BASE}${path}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 401) {
+          doLogout();
+          return null;
+        }
+        return res.json();
+      }
+
+      // ════════════════════════════════════════════════════
+      //  LOAD ALL DASHBOARD DATA
+      // ════════════════════════════════════════════════════
+      async function loadAll() {
+        if (!token) return;
+        const [stats, hourly, byType, trend, topHosts] = await Promise.all([
+          api(`/api/admin/stats?range=${currentRange}`),
+          api(`/api/admin/hourly?range=${currentRange}`),
+          api(`/api/admin/by-type?range=${currentRange}`),
+          api(`/api/admin/trend?range=${currentRange}`),
+          api(`/api/admin/top-hosts?range=${currentRange}`),
+        ]);
+
+        if (stats) renderStats(stats);
+        if (hourly) renderHourlyChart(hourly);
+        if (byType) renderTypeChart(byType);
+        if (trend) renderTrendChart(trend);
+        if (topHosts) renderTopHosts(topHosts);
+      }
+
+      // ════════════════════════════════════════════════════
+      //  RENDER STATS
+      // ════════════════════════════════════════════════════
+      function renderStats(s) {
+        document.getElementById("kpi-active").textContent = s.active;
+        document.getElementById("kpi-total").textContent = s.total;
+        document.getElementById("kpi-avg").textContent = s.avgDuration || "—";
+        document.getElementById("kpi-peak").textContent = s.peakHour;
+        document.getElementById("kpi-peak-count").textContent =
+          `${s.peakCount} visitors in that hour`;
+        document.getElementById("kpi-unsigned").textContent = s.unsigned;
+        document.getElementById("kpi-nophoto").textContent = s.noPhoto;
+      }
+
+      // ════════════════════════════════════════════════════
+      //  CHARTS
+      // ════════════════════════════════════════════════════
+      const CHART_COLORS = {
+        green: "rgba(46,90,58,0.8)",
+        accent: "rgba(200,89,58,0.8)",
+        blue: "rgba(58,123,200,0.8)",
+        purple: "rgba(124,58,200,0.8)",
+        yellow: "rgba(200,170,58,0.8)",
+        teal: "rgba(58,170,200,0.8)",
+      };
+      const TYPE_COLORS = [
+        CHART_COLORS.green,
+        CHART_COLORS.accent,
+        CHART_COLORS.blue,
+        CHART_COLORS.purple,
+        CHART_COLORS.yellow,
+        CHART_COLORS.teal,
+      ];
+
+      function destroyChart(key) {
+        if (charts[key]) {
+          charts[key].destroy();
+          delete charts[key];
+        }
+      }
+
+      function renderHourlyChart(hours) {
+        destroyChart("hourly");
+        const labels = hours.map(
+          (h) => `${String(h.hour).padStart(2, "0")}:00`,
+        );
+        const data = hours.map((h) => h.count);
+        const ctx = document.getElementById("hourlyChart").getContext("2d");
+        charts.hourly = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Check-ins",
+                data,
+                backgroundColor: CHART_COLORS.green,
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { font: { size: 10 }, maxRotation: 45 },
+              },
+              y: {
+                grid: { color: "rgba(0,0,0,0.05)" },
+                ticks: { font: { size: 10 }, stepSize: 1 },
+              },
+            },
+          },
+        });
+      }
+
+      function renderTypeChart(types) {
+        destroyChart("type");
+        const ctx = document.getElementById("typeChart").getContext("2d");
+        charts.type = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: types.map((t) => t.visit_type),
+            datasets: [
+              {
+                data: types.map((t) => parseInt(t.count)),
+                backgroundColor: TYPE_COLORS,
+                borderWidth: 2,
+                borderColor: "#fff",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { font: { size: 11 }, padding: 10 },
+              },
+            },
+            cutout: "65%",
+          },
+        });
+      }
+
+      function renderTrendChart(trend) {
+        destroyChart("trend");
+        const ctx = document.getElementById("trendChart").getContext("2d");
+        charts.trend = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: trend.map((t) =>
+              new Date(t.date).toLocaleDateString("en-KE", {
+                weekday: "short",
+                day: "numeric",
+              }),
+            ),
+            datasets: [
+              {
+                label: "Visitors",
+                data: trend.map((t) => parseInt(t.count)),
+                borderColor: CHART_COLORS.green,
+                backgroundColor: "rgba(46,90,58,0.08)",
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: CHART_COLORS.green,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+              y: {
+                grid: { color: "rgba(0,0,0,0.05)" },
+                ticks: { font: { size: 10 }, stepSize: 1 },
+              },
+            },
+          },
+        });
+      }
+
+      function renderTopHosts(hosts) {
+        const el = document.getElementById("topHostsList");
+        if (!hosts.length) {
+          el.innerHTML =
+            '<p style="color:var(--muted);font-size:13px;">No data for this period.</p>';
+          return;
+        }
+        const max = parseInt(hosts[0].visits);
+        const rankClass = (i) =>
+          i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
+        el.innerHTML = hosts
+          .map(
+            (h, i) => `
+    <div class="host-item">
+      <div class="host-rank ${rankClass(i)}">${i + 1}</div>
+      <div style="flex:1; min-width:0; margin:0 8px;">
+        <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.host_name}</div>
+        <div style="font-size:10px;color:var(--muted);">${h.host_dept || "—"}</div>
+      </div>
+      <div class="host-bar">
+        <div class="host-bar-fill" style="width:${Math.round((parseInt(h.visits) / max) * 100)}%"></div>
+      </div>
+      <div style="font-weight:700;font-size:13px;color:var(--green);width:24px;text-align:right;">${h.visits}</div>
+    </div>`,
+          )
+          .join("");
+      }
+
+      // ════════════════════════════════════════════════════
+      //  VISITOR LOG
+      // ════════════════════════════════════════════════════
+      let currentPage = 1;
+
+      async function loadVisitorLog(page = 1) {
+        currentPage = page;
+        const data = await api(
+          `/api/admin/visitors?range=${currentRange}&page=${page}&limit=50`,
+        );
+        if (!data) return;
+
+        const tbody = document.getElementById("visitorLogBody");
+        if (!data.rows.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px;">No visitors for this period.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.rows
+          .map((r, i) => {
+            const timeIn = r.check_in
+              ? new Date(r.check_in).toLocaleString("en-KE", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  day: "numeric",
+                  month: "short",
+                })
+              : "—";
+            const timeOut = r.check_out
+              ? new Date(r.check_out).toLocaleString("en-KE", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "—";
+            const dur = r.duration_mins
+              ? r.duration_mins < 60
+                ? `${r.duration_mins}m`
+                : `${Math.floor(r.duration_mins / 60)}h ${r.duration_mins % 60}m`
+              : "—";
+            const status = r.check_out
+              ? `<span class="badge badge-done">Departed</span>`
+              : `<span class="badge badge-active">● Active</span>`;
+            const action = !r.check_out
+              ? `<button onclick="adminCheckOut(${r.visit_id})" style="background:var(--green);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;">Check Out</button>`
+              : "";
+            return `<tr>
+      <td>${(page - 1) * 50 + i + 1}</td>
+      <td><strong>${r.name || "—"}</strong><br><span style="font-size:11px;color:var(--muted);">${r.phone || ""}</span></td>
+      <td>${r.company || "—"}</td>
+      <td>${r.visit_type || "—"}</td>
+      <td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.purpose || "—"}</td>
+      <td>${r.host_name || "—"}</td>
+      <td style="white-space:nowrap;">${timeIn}</td>
+      <td style="white-space:nowrap;">${timeOut}</td>
+      <td>${dur}</td>
+      <td>${status}</td>
+      <td>${action}</td>
+    </tr>`;
+          })
+          .join("");
+
+        const pages = Math.ceil(data.total / 50);
+        document.getElementById("logPagination").innerHTML =
+          pages > 1
+            ? `Page ${page} of ${pages} &nbsp;
+       ${page > 1 ? `<button onclick="loadVisitorLog(${page - 1})" style="margin:0 4px;cursor:pointer;">← Prev</button>` : ""}
+       ${page < pages ? `<button onclick="loadVisitorLog(${page + 1})" style="margin:0 4px;cursor:pointer;">Next →</button>` : ""}`
+            : `${data.total} record${data.total !== 1 ? "s" : ""}`;
+      }
+
+      async function adminCheckOut(visitId) {
+        const res = await fetch(
+          `${API_BASE}/api/visitors/${visitId}/checkout`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        if (res.ok) {
+          showToast("✅ Visitor checked out");
+          loadVisitorLog(currentPage);
+        } else showToast("❌ Check-out failed");
+      }
+
+      // ════════════════════════════════════════════════════
+      //  REPORTS — duplicate charts for reports tab
+      // ════════════════════════════════════════════════════
+      async function loadReportCharts() {
+        const [hourly, byType, trend] = await Promise.all([
+          api(`/api/admin/hourly?range=${currentRange}`),
+          api(`/api/admin/by-type?range=${currentRange}`),
+          api(`/api/admin/trend?range=${currentRange}`),
+        ]);
+
+        if (hourly) {
+          destroyChart("hourlyFull");
+          const ctx = document
+            .getElementById("hourlyChartFull")
+            .getContext("2d");
+          charts.hourlyFull = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: hourly.map(
+                (h) => `${String(h.hour).padStart(2, "0")}:00`,
+              ),
+              datasets: [
+                {
+                  label: "Check-ins",
+                  data: hourly.map((h) => h.count),
+                  backgroundColor: CHART_COLORS.green,
+                  borderRadius: 4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { grid: { display: false } },
+                y: { ticks: { stepSize: 1 } },
+              },
+            },
+          });
+        }
+
+        if (byType) {
+          destroyChart("typeFull");
+          const ctx = document.getElementById("typeChartFull").getContext("2d");
+          charts.typeFull = new Chart(ctx, {
+            type: "doughnut",
+            data: {
+              labels: byType.map((t) => t.visit_type),
+              datasets: [
+                {
+                  data: byType.map((t) => parseInt(t.count)),
+                  backgroundColor: TYPE_COLORS,
+                  borderWidth: 2,
+                  borderColor: "#fff",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: "65%",
+              plugins: { legend: { position: "bottom" } },
+            },
+          });
+        }
+
+        if (trend) {
+          destroyChart("trendFull");
+          const ctx = document
+            .getElementById("trendChartFull")
+            .getContext("2d");
+          charts.trendFull = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: trend.map((t) =>
+                new Date(t.date).toLocaleDateString("en-KE", {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                }),
+              ),
+              datasets: [
+                {
+                  label: "Visitors",
+                  data: trend.map((t) => parseInt(t.count)),
+                  borderColor: CHART_COLORS.green,
+                  backgroundColor: "rgba(46,90,58,0.08)",
+                  fill: true,
+                  tension: 0.4,
+                  pointRadius: 5,
+                  pointBackgroundColor: CHART_COLORS.green,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { grid: { display: false } },
+                y: { ticks: { stepSize: 1 } },
+              },
+            },
+          });
+        }
+      }
+
+      // ════════════════════════════════════════════════════
+      //  EXPORT
+      // ════════════════════════════════════════════════════
+      async function exportCSV() {
+        const res = await fetch(
+          `${API_BASE}/api/admin/export?range=${currentRange}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (!res.ok) {
+          showToast("❌ Export failed");
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `vivo_visitors_${currentRange}_${new Date().toISOString().split("T")[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      // ════════════════════════════════════════════════════
+      //  USER MANAGEMENT
+      // ════════════════════════════════════════════════════
+      async function loadUsers() {
+        const users = await api("/api/admin/users");
+        if (!users) return;
+        const roleClass = (r) =>
+          ({
+            superadmin: "badge-sa",
+            manager: "badge-manager",
+            security: "badge-security",
+            readonly: "badge-readonly",
+          })[r] || "";
+        document.getElementById("usersTableBody").innerHTML = users
+          .map(
+            (u) => `
+    <tr>
+      <td><strong>${u.name}</strong></td>
+      <td>${u.email}</td>
+      <td><span class="badge ${roleClass(u.role)}">${u.role}</span></td>
+      <td><span class="badge ${u.is_active ? "badge-active" : "badge-done"}">${u.is_active ? "Active" : "Inactive"}</span></td>
+      <td style="font-size:12px;color:var(--muted);">${u.last_login ? new Date(u.last_login).toLocaleString("en-KE") : "Never"}</td>
+      <td>
+        ${
+          u.role !== "superadmin"
+            ? `
+        <button onclick="toggleUser(${u.id}, ${!u.is_active}, '${u.name}', '${u.role}')"
+          style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:#fff;margin-right:4px;">
+          ${u.is_active ? "Deactivate" : "Activate"}
+        </button>`
+            : ""
+        }
+        <button onclick="openResetModal(${u.id})"
+          style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:#fff;">
+          Reset PW
+        </button>
+      </td>
+    </tr>`,
+          )
+          .join("");
+      }
+
+      function showAddUser() {
+        const f = document.getElementById("addUserForm");
+        f.style.display = f.style.display === "none" ? "block" : "none";
+      }
+
+      async function createUser() {
+        const name = document.getElementById("newName").value.trim();
+        const email = document.getElementById("newEmail").value.trim();
+        const password = document.getElementById("newPassword").value;
+        const role = document.getElementById("newRole").value;
+        if (!name || !email || !password) {
+          showToast("All fields are required");
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/api/admin/users`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name, email, password, role }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast("✅ User created");
+          document.getElementById("addUserForm").style.display = "none";
+          ["newName", "newEmail", "newPassword"].forEach(
+            (id) => (document.getElementById(id).value = ""),
+          );
+          loadUsers();
+        } else {
+          showToast(data.error || "❌ Could not create user");
+        }
+      }
+
+      async function toggleUser(id, isActive, name, role) {
+        const res = await fetch(`${API_BASE}/api/admin/users/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name, role, is_active: isActive }),
+        });
+        if (res.ok) {
+          showToast(`✅ User ${isActive ? "activated" : "deactivated"}`);
+          loadUsers();
+        } else showToast("❌ Could not update user");
+      }
+
+      function openResetModal(id) {
+        resetTargetId = id;
+        document.getElementById("resetPasswordInput").value = "";
+        document.getElementById("resetModal").classList.add("show");
+      }
+      function closeResetModal() {
+        document.getElementById("resetModal").classList.remove("show");
+        resetTargetId = null;
+      }
+      async function submitReset() {
+        const password = document.getElementById("resetPasswordInput").value;
+        if (!password) {
+          showToast("Enter a new password");
+          return;
+        }
+        const res = await fetch(
+          `${API_BASE}/api/admin/users/${resetTargetId}/password`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ password }),
+          },
+        );
+        if (res.ok) {
+          showToast("✅ Password reset");
+          closeResetModal();
+        } else showToast("❌ Reset failed");
+      }
+
+      // ════════════════════════════════════════════════════
+      //  TOAST
+      // ════════════════════════════════════════════════════
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2800);
+      }
+    </script>
+  </body>
+</html>
